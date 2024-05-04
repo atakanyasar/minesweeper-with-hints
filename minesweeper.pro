@@ -10,10 +10,14 @@ CONFIG += c++17
 
 SOURCES += \
     main.cpp \
-    src/minesweeper.cpp
+    src/minesweeper.cpp \
+    src/cell.cpp
 
 HEADERS += \
-    include/minesweeper.h
+    include/minesweeper.h \
+    include/cell.h
+
+RESOURCES = resources.qrc
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

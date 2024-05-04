@@ -3,7 +3,8 @@
 
 #include <QWidget>
 #include <QGridLayout>
-#include <QPushButton>
+
+#include "include/cell.h"
 
 class MineSweeper : public QWidget
 {
@@ -12,12 +13,17 @@ class MineSweeper : public QWidget
 public:
     MineSweeper(size_t N, size_t M, size_t num_mines, QWidget *parent = nullptr);
     ~MineSweeper();
+    void generateMines();
 
 private:
     size_t N;
     size_t M;
     size_t num_mines;
     QGridLayout* gridLayout;
+    size_t getNumber(int i, int j);
+
+public slots:
+    void revealNeighborsSlot(int i, int j);
 
 };
 #endif // MINESWEEPER_H
