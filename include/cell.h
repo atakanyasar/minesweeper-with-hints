@@ -24,6 +24,7 @@ public:
     bool isMine() const;
     bool isRevealed() const;
     bool isEmpty() const;
+    bool isHint() const;
 
     void reveal();
     void toggleFlag();

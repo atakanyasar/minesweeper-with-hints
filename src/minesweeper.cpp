@@ -17,6 +17,9 @@ MineSweeper::~MineSweeper()
 }
 
 void MineSweeper::reset() {
+
+    this->num_revealed = 0;
+
     for (int i = 0; i < this->N; i++) {
         for (int j = 0; j < this->M; j++) {
             this->gridLayout->removeWidget(this->gridLayout->itemAtPosition(i, j)->widget());
@@ -57,9 +60,14 @@ void MineSweeper::generateMines()
     }
 }
 
-size_t MineSweeper::getNumber(int i, int j)
+Cell* MineSweeper::getCell(int i, int j)
 {
-    int number = 0;
+    return dynamic_cast<Cell*>(this->gridLayout->itemAtPosition(i, j)->widget());
+}
+
+std::vector<std::pair<int, int>> MineSweeper::getNeighbors(int i, int j, std::function<bool(int, int)> filter)
+{
+    std::vector<std::pair<int, int>> cells;
     for (int x = i - 1; x <= i + 1; x++) {
         for (int y = j - 1; y <= j + 1; y++) {
             if (x < 0 || x >= this->N || y < 0 || y >= this->M) {
@@ -70,47 +78,42 @@ size_t MineSweeper::getNumber(int i, int j)
                 continue;
             }
 
-            if (this->gridLayout->itemAtPosition(x, y) == nullptr) {
+            if (filter(x, y) == false) {
                 continue;
             }
 
-            Cell* cell = dynamic_cast<Cell*>(this->gridLayout->itemAtPosition(x, y)->widget());
-            
-            if (cell->isMine()) {
-                number++;
-            }
+            cells.push_back(std::make_pair(x, y));
         }
     }
 
-    return number;
+    return cells;
+}
+
+size_t MineSweeper::getNumber(int i, int j)
+{
+    return getNeighbors(i, j, [this](int x, int y) {
+        return this->gridLayout->itemAtPosition(x, y) != nullptr && getCell(x, y)->isMine();
+    }).size();
 }
 
 void MineSweeper::revealNeighbors(int i, int j)
 {
-    for (int x = i - 1; x <= i + 1; x++) {
-        for (int y = j - 1; y <= j + 1; y++) {
-            if (x < 0 || x >= this->N || y < 0 || y >= this->M) {
-                continue;
-            }
+    for (auto [x, y] : getNeighbors(i, j)) {
 
-            if (x == i && y == j) {
-                continue;
-            }
-
-            Cell* cell = dynamic_cast<Cell*>(this->gridLayout->itemAtPosition(x, y)->widget());
-            
-            if (cell->isRevealed() || cell->isMine())
-            {
-                continue;
-            }
-             cell->reveal();
+        Cell* cell = getCell(x, y);
+        
+        if (cell->isRevealed() || cell->isMine())
+        {
+            continue;
         }
+
+        cell->reveal();   
     }
 }
 
 void MineSweeper::revealedSlot(int i, int j)
 {   
-    Cell* cell = dynamic_cast<Cell*>(this->gridLayout->itemAtPosition(i, j)->widget());
+    Cell* cell = getCell(i, j);
     if (cell->isMine()) {
         this->gameOver(false);
         return;
@@ -128,17 +131,90 @@ void MineSweeper::revealedSlot(int i, int j)
     }
 }
 
+int MineSweeper::getNumAdjacentReveals(int i, int j)
+{
+    return getNeighbors(i, j, [this](int x, int y) {
+        return getCell(x, y)->isRevealed();
+    }).size();
+}
+
 void MineSweeper::hint()
 {
-    Cell* cell = dynamic_cast<Cell*>(this->gridLayout->itemAtPosition(0, 0)->widget());
-    cell->setHint();
+    bool activeHint = false;
+    for (int i = 0; i < this->N; i++) {
+        for (int j = 0; j < this->M; j++) {
+            if (getCell(i, j)->isRevealed()) {
+                continue;
+            }
+            if (getCell(i, j)->isHint()) {
+                getCell(i, j)->reveal();
+                activeHint = true;
+            }
+        }
+    }
+
+    if (activeHint) {
+        return;
+    }
+
+    std::vector<std::vector<bool>> mineDetected(this->N, std::vector<bool>(this->M, false));
+
+    for (int i = 0; i < this->N; i++) {
+        for (int j = 0; j < this->M; j++) {
+            if (getCell(i, j)->isRevealed() == false) {
+                continue;
+            }
+            
+            int unreveals = 8 - getNumAdjacentReveals(i, j);
+            
+            if (unreveals != getNumber(i, j)) {
+                continue;
+            }
+
+            getNeighbors(i, j, [&](int x, int y) {
+                if (getCell(x, y)->isRevealed() == false) {
+                    mineDetected[x][y] = true;
+                }
+                return true;
+            });
+        }
+    }
+
+    for (int i = 0; i < this->N; i++) {
+        for (int j = 0; j < this->M; j++) {
+            if (getCell(i, j)->isRevealed() == false) {
+                continue;
+            }
+
+            if (mineDetected[i][j]) {
+                continue;
+            }
+
+            int mines = getNeighbors(i, j, [&](int x, int y) {
+                return mineDetected[x][y];
+            }).size();
+
+            if (getNumber(i, j) != mines) {
+                continue;
+            }
+
+            auto hintCells = getNeighbors(i, j, [&](int x, int y) {
+                return mineDetected[x][y] == false && getCell(x, y)->isRevealed() == false;
+            });
+
+            for (auto [x, y] : hintCells) {
+                getCell(x, y)->setHint();
+            }
+        }
+    }
+
 }
 
 void MineSweeper::gameOver(bool win)
 {
     for (int i = 0; i < this->N; i++) {
         for (int j = 0; j < this->M; j++) {
-            Cell* cell = dynamic_cast<Cell*>(this->gridLayout->itemAtPosition(i, j)->widget());
+            Cell* cell = getCell(i, j);
             if (cell->isRevealed()) {
                 continue;
             }

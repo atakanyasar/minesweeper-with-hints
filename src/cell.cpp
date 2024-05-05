@@ -48,6 +48,11 @@ bool Cell::isEmpty() const
     return this->number == 0;
 }
 
+bool Cell::isHint() const
+{
+    return this->hint;
+}
+
 void Cell::reveal()
 {
     if (this->revealed) {
@@ -97,12 +102,15 @@ void Cell::setFlag()
 
 void Cell::setHint()
 {
+    this->hint = true;
     this->setStyleSheet("border-image:url(:/assets/hint.png);");
 }
 
 void Cell::setNumber()
 {
     assert (this->number >= 0 && this->number <= 8);
+    this->hint = false;
+    this->flag = false;
 
     std::string path = ":/assets/" + std::to_string(this->number) + ".png";
     const QString filename = QString::fromStdString(path);
