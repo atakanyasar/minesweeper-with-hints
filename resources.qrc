@@ -12,5 +12,7 @@
         <file>assets/mine.png</file>
         <file>assets/flag.png</file>
         <file>assets/empty.png</file>
+        <file>assets/hint.png</file>
+        <file>assets/wrong-flag.png</file>
     </qresource>
 </RCC>

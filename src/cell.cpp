@@ -14,14 +14,23 @@ Cell::Cell(int row, int col, size_t number, QWidget* parent)
     this->hint = false;
     this->number = number;
 
-    connect(this, &QPushButton::clicked, this, &Cell::reveal);
-    // connect(this, &QPushButton::rightClicked, this, &Cell::toggleFlag);
+    this->setEmpty();
 
 }
 
 Cell::~Cell()
 {
 
+}
+
+void Cell::mousePressEvent(QMouseEvent* event)
+{
+    if (event->button() == Qt::LeftButton) {
+        this->reveal();
+    } 
+    if (event->button() == Qt::RightButton) {
+        this->toggleFlag();
+    }
 }
 
 bool Cell::isMine() const
@@ -52,6 +61,8 @@ void Cell::reveal()
     } else {
         this->setNumber();
     }
+    emit revealedSignal(this->row, this->col);
+    this->blockSignals(true);
 }
 
 void Cell::toggleFlag()
@@ -71,7 +82,7 @@ void Cell::toggleFlag()
 
 void Cell::setEmpty()
 {
-    this->setStyleSheet("border-image:url(:/assets/0.png);");
+    this->setStyleSheet("border-image:url(:/assets/empty.png);");
 }
 
 void Cell::setMine()
@@ -84,18 +95,16 @@ void Cell::setFlag()
     this->setStyleSheet("border-image:url(:/assets/flag.png);");
 }
 
+void Cell::setHint()
+{
+    this->setStyleSheet("border-image:url(:/assets/hint.png);");
+}
+
 void Cell::setNumber()
 {
     assert (this->number >= 0 && this->number <= 8);
 
-    if (this->number == 0) {
-        this->setEmpty();
-        emit revealNeighborsSignal(this->row, this->col);
-    } else {
-        std::string path = ":/assets/" + std::to_string(this->number) + ".png";
-        const QString filename = QString::fromStdString(path);
-        this->setStyleSheet("border-image:url(" + filename + ");");
-    }
-    
-    this->blockSignals(true);
+    std::string path = ":/assets/" + std::to_string(this->number) + ".png";
+    const QString filename = QString::fromStdString(path);
+    this->setStyleSheet("border-image:url(" + filename + ");");
 }

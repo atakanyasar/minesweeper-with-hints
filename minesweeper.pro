@@ -11,11 +11,13 @@ CONFIG += c++17
 SOURCES += \
     main.cpp \
     src/minesweeper.cpp \
-    src/cell.cpp
+    src/cell.cpp \
+    src/mainwindow.cpp
 
 HEADERS += \
     include/minesweeper.h \
-    include/cell.h
+    include/cell.h \
+    include/mainwindow.h
 
 RESOURCES = resources.qrc
 

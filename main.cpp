@@ -1,4 +1,4 @@
-#include "include/minesweeper.h"
+#include "include/mainwindow.h"
 
 #include <QApplication>
 
@@ -6,7 +6,7 @@ int main(int argc, char *argv[])
 {
     srand(0);
     QApplication a(argc, argv);
-    MineSweeper w(10, 10, 10);
-    w.show();
+    MainWindow* w = new MainWindow();
+    w->show();
     return a.exec();
 }
