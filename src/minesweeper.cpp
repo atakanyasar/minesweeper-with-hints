@@ -19,6 +19,7 @@ MineSweeper::~MineSweeper()
 void MineSweeper::reset() {
 
     this->num_revealed = 0;
+    emit this->scoreSignal(0);
 
     for (int i = 0; i < this->N; i++) {
         for (int j = 0; j < this->M; j++) {
